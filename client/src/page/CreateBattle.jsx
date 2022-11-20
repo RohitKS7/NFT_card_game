@@ -1,18 +1,15 @@
 import React from "react";
 import { PageHOC } from "../components";
 
-const Home = () => {
+const CreateBattle = () => {
   return <></>;
 };
 
 // NOTE Here we are using HOC as the wrapper of second component that is home and title and also description.
 export default PageHOC(
-  Home,
+  CreateBattle,
   <>
-    Welcome to Avax Gods <br /> a Web3 NFT Card Game{" "}
+    Create <br /> a New Battle{" "}
   </>,
-  <>
-    Connect you wallet to start playing <br /> the ultimate Web3 Battle Card
-    Game.{" "}
-  </>
+  <>Create you own battle and wait for other players to join you</>
 );
