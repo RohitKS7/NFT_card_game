@@ -4,6 +4,14 @@ require("solidity-coverage")
 require("hardhat-contract-sizer")
 require("dotenv").config()
 
+//* Notes for deploying the smart contract on your own subnet
+//* More info on subnets: https://docs.avax.network/subnets
+//* Why deploy on a subnet: https://docs.avax.network/subnets/when-to-use-subnet-vs-c-chain
+//* How to deploy on a subnet: https://docs.avax.network/subnets/create-a-local-subnet
+//* Transactions on the C-Chain might take 2-10 seconds -> the ones on the subnet will be much faster
+//* On C-Chain we're relaying on the Avax token to confirm transactions -> on the subnet we can create our own token
+//* You are in complete control over the network and it's inner workings
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -17,6 +25,7 @@ const GOERLI_RPC_URL =
 const POLYGON_MAINNET_RPC_URL =
     process.env.POLYGON_MAINNET_RPC_URL || "https://polygon-mainnet.alchemyapi.io/v2/your-api-key"
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x"
+const RPC_URL = "https://api.avax-test.network/ext/bc/C/rpc"
 
 module.exports = {
     defaultNetwork: "hardhat",
@@ -27,10 +36,23 @@ module.exports = {
             //   url: MAINNET_RPC_URL
             // }
             chainId: 31337,
+            allowUnlimitedContractSize: true,
         },
         localhost: {
             chainId: 31337,
         },
+        fuji: {
+            url: RPC_URL,
+            gasPrice: 225000000000,
+            chainId: 43113,
+            accounts: [PRIVATE_KEY],
+        },
+        // subnet: {
+        //   url: process.env.NODE_URL,
+        //   chainId: Number(process.env.CHAIN_ID),
+        //   gasPrice: 'auto',
+        //   accounts: [process.env.PRIVATE_KEY],
+        // },
         goerli: {
             url: GOERLI_RPC_URL,
             accounts: [PRIVATE_KEY],
@@ -59,7 +81,7 @@ module.exports = {
     },
     contractSizer: {
         runOnCompile: true,
-        only: ["AVAXgods"],
+        only: ["AVAXGods"],
     },
     namedAccounts: {
         deployer: {
@@ -79,6 +101,12 @@ module.exports = {
                 version: "0.4.24",
             },
         ],
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200,
+            },
+        },
     },
     mocha: {
         timeout: 200000, // 200 seconds max for running tests
