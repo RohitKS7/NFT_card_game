@@ -23,6 +23,11 @@ export const GlobalContextProvider = ({ children }) => {
     message: "",
   });
   const [battleName, setBattleName] = useState("");
+  const [gameData, setGameData] = useState({
+    players: [],
+    pendingBattles: [],
+    activeBattle: null,
+  });
 
   const navigate = useNavigate();
 
@@ -85,6 +90,40 @@ export const GlobalContextProvider = ({ children }) => {
     }
   }, [showAlert]);
 
+  // SECTION ------------- Keep Track of Active Battles -------------
+  // set the game data to the state whenever the contract changes
+  useEffect(() => {
+    const fetchGameData = async () => {
+      const fetchedBattles = await contract.getAllBattles();
+      // battleStatus === 0 , means battle is in pending state
+      const pendingBattles = fetchedBattles.filter((battle) => {
+        battle.battleStatus === 0;
+      });
+
+      let activeBattle = null;
+
+      // Find if the current player has created a battle or not
+      fetchedBattles.forEach((battle) => {
+        // if the players address is similar to their browser's wallet address
+        if (
+          battle.players.find(
+            (player) => player.toLowerCase() === walletAddress.toLowerCase()
+          )
+        ) {
+          // if the winner is 0x00 address that means the battle is still in process
+          if (battle.winner.startsWith("0x00")) {
+            activeBattle = battle; // actual battle
+          }
+        }
+      });
+
+      // start with index 1 battles coz index 0 is always empty
+      setGameData({ pendingBattles: pendingBattles.slice(1), activeBattle });
+    };
+
+    if (contract) fetchGameData();
+  }, [contract]);
+
   return (
     // This tag takes 1 prop that is "value" which will contain all the values we want to pass on other components(values of smart contract etc.)
     <GlobalContext.Provider
@@ -95,6 +134,7 @@ export const GlobalContextProvider = ({ children }) => {
         showAlert,
         battleName,
         setBattleName,
+        gameData,
       }}
     >
       {children}
