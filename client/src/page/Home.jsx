@@ -9,7 +9,6 @@ const Home = () => {
   // NOTE This is the first function, which is intracting with our smart contract.
   const handleClick = async () => {
     try {
-      console.log({ contract });
       const playerExists = await contract.isPlayer(walletAddress);
 
       // If no player is available then create one
@@ -17,13 +16,17 @@ const Home = () => {
         await contract.registerPlayer(playerName, playerName);
 
         setShowAlert({
-          status: "true",
+          status: true,
           type: "info",
           message: `${playerName} is being summoned!`,
         });
       }
     } catch (error) {
-      alert(error);
+      setShowAlert({
+        status: true,
+        type: "failure",
+        message: "something went wrong",
+      });
     }
   };
 

@@ -17,7 +17,7 @@ export const GlobalContextProvider = ({ children }) => {
   const [contract, setContract] = useState("");
   const [provider, setProvider] = useState("");
   const [showAlert, setShowAlert] = useState({
-    status: "false", // alert is not showing
+    status: false, // false means alert is not showing
     type: "info",
     message: "",
   });
@@ -60,7 +60,7 @@ export const GlobalContextProvider = ({ children }) => {
     // if alert is already showing then close it in 5 seconds
     if (showAlert?.status) {
       const timer = setTimeout(() => {
-        setShowAlert({ status: "false", type: "info", message: "" });
+        setShowAlert({ status: false, type: "info", message: "" });
       }, 5000);
 
       return () => clearTimeout(timer);
@@ -74,6 +74,7 @@ export const GlobalContextProvider = ({ children }) => {
         contract,
         walletAddress,
         setShowAlert,
+        showAlert,
       }}
     >
       {children}

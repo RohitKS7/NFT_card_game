@@ -1,16 +1,24 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles";
+import { Alert } from "../components";
 import { logo, heroImg } from "../assets";
+
+import { useGlobalContext } from "../context";
 
 // NOTE The difference between a Higher Order Component(HOC) and the regular component is that as a first paremeter HOC will accept a new component that we're gonna pass into it. Essentially HOC will act like a wrapper for that smaller compenent. And we also pass some additional things like: "title", "description".
 
 // TODO look closely, it's a funciton inside function.
 const PageHOC = (Component, title, description) => () => {
+  const { showAlert } = useGlobalContext();
   const navigate = useNavigate();
 
   return (
     <div className={styles.hocContainer}>
+      {showAlert?.status && (
+        <Alert type={showAlert.type} message={showAlert.message} />
+      )}
+
       <div className={styles.hocContentBox}>
         <img
           src={logo}
