@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PageHOC, CustomInput, CustomButton } from "../components";
 import { useGlobalContext } from "../context";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const { contract, walletAddress, setShowAlert } = useGlobalContext();
   const [playerName, setPlayerName] = useState("");
+  const navigate = useNavigate();
 
   // NOTE This is the first function, which is intracting with our smart contract.
   const handleClick = async () => {
@@ -29,6 +31,26 @@ const Home = () => {
       });
     }
   };
+
+  //  NOTE This useEffect will trigger when contract changes
+  // the purpose of this useEffect is to check if a player is registered or not. If registered then move to player to new page.
+  useEffect(() => {
+    const checkForPlayerToken = async () => {
+      const playerExists = await contract.isPlayer(walletAddress);
+
+      // now checking if player token is created or not. Player token is created while we call register() on contract.
+      const playerTokenExists = await contract.isPlayerToken(walletAddress);
+
+      console.log(playerExists, playerTokenExists);
+
+      // When both things exists then move the player to 'createBattle' page
+      if (playerExists && playerTokenExists) navigate("/create-battle");
+    };
+
+    if (contract) {
+      checkForPlayerToken();
+    }
+  }, [contract]);
 
   return (
     <>

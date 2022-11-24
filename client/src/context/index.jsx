@@ -9,6 +9,7 @@ import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import { useNavigate } from "react-router-dom";
 import { ABI, ADDRESS } from "../contract";
+import { createEventListeners } from "./createEventListeners";
 
 const GlobalContext = createContext();
 
@@ -21,6 +22,8 @@ export const GlobalContextProvider = ({ children }) => {
     type: "info",
     message: "",
   });
+
+  const navigate = useNavigate();
 
   // NOTE Series of useEffects to connect with our smart contract as soon as possible with website load
 
@@ -54,6 +57,20 @@ export const GlobalContextProvider = ({ children }) => {
 
     setSmartContractAndProvider();
   }, []);
+
+  // SECTION ------------- EventListeners  -------------
+  useEffect(() => {
+    if (contract) {
+      // providing all the props we need to use in eventListeners page
+      createEventListeners({
+        navigate,
+        contract,
+        provider,
+        walletAddress,
+        setShowAlert,
+      });
+    }
+  }, [contract]);
 
   // SECTION ------------- Notification -------------
   useEffect(() => {
