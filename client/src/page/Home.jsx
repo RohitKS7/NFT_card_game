@@ -66,7 +66,7 @@ const Home = () => {
         <CustomButton
           title="Register"
           handleClick={handleClick}
-          restStyles="mt-4"
+          restStyles="mt-6"
         />
       </div>
     </>
