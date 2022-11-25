@@ -14,6 +14,7 @@ import { createEventListeners } from "./createEventListeners";
 const GlobalContext = createContext();
 
 export const GlobalContextProvider = ({ children }) => {
+  // SECTION ------------- Hooks -------------
   const [walletAddress, setWalletAddress] = useState("");
   const [contract, setContract] = useState("");
   const [provider, setProvider] = useState("");
@@ -28,7 +29,8 @@ export const GlobalContextProvider = ({ children }) => {
     pendingBattles: [],
     activeBattle: null,
   });
-
+  const [updateGameData, setUpdateGameData] = useState(0);
+  const [battleGround, setBattleGround] = useState("bg-astral");
   const navigate = useNavigate();
 
   // NOTE Series of useEffects to connect with our smart contract as soon as possible with website load
@@ -74,6 +76,7 @@ export const GlobalContextProvider = ({ children }) => {
         provider,
         walletAddress,
         setShowAlert,
+        setUpdateGameData,
       });
     }
   }, [contract]);
@@ -94,35 +97,37 @@ export const GlobalContextProvider = ({ children }) => {
   // set the game data to the state whenever the contract changes
   useEffect(() => {
     const fetchGameData = async () => {
-      const fetchedBattles = await contract.getAllBattles();
-      // battleStatus === 0 , means battle is in pending state
-      const pendingBattles = fetchedBattles.filter((battle) => {
-        battle.battleStatus === 0;
-      });
+      if (contract) {
+        const fetchedBattles = await contract.getAllBattles();
+        // battleStatus === 0 , means battle is in pending state
+        const pendingBattles = fetchedBattles.filter(
+          (battle) => battle.battleStatus === 0
+        );
 
-      let activeBattle = null;
+        let activeBattle = null;
 
-      // Find if the current player has created a battle or not
-      fetchedBattles.forEach((battle) => {
-        // if the players address is similar to their browser's wallet address
-        if (
-          battle.players.find(
-            (player) => player.toLowerCase() === walletAddress.toLowerCase()
-          )
-        ) {
-          // if the winner is 0x00 address that means the battle is still in process
-          if (battle.winner.startsWith("0x00")) {
-            activeBattle = battle; // actual battle
+        // Find if the current player has created a battle or not
+        fetchedBattles.forEach((battle) => {
+          // if the players address is similar to their browser's wallet address
+          if (
+            battle.players.find(
+              (player) => player.toLowerCase() === walletAddress.toLowerCase()
+            )
+          ) {
+            // if the winner is 0x00 address that means the battle is still in process
+            if (battle.winner.startsWith("0x00")) {
+              activeBattle = battle; // actual battle
+            }
           }
-        }
-      });
+        });
 
-      // start with index 1 battles coz index 0 is always empty
-      setGameData({ pendingBattles: pendingBattles.slice(1), activeBattle });
+        // start with index 1 battles coz index 0 is always empty
+        setGameData({ pendingBattles: pendingBattles.slice(1), activeBattle });
+      }
     };
 
     if (contract) fetchGameData();
-  }, [contract]);
+  }, [contract, updateGameData]);
 
   return (
     // This tag takes 1 prop that is "value" which will contain all the values we want to pass on other components(values of smart contract etc.)
@@ -135,6 +140,8 @@ export const GlobalContextProvider = ({ children }) => {
         battleName,
         setBattleName,
         gameData,
+        battleGround,
+        setBattleGround,
       }}
     >
       {children}

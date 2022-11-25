@@ -7,10 +7,17 @@ import { useGlobalContext } from "../context";
 const CreateBattle = () => {
   const navigate = useNavigate();
   const [waitBattle, setWaitBattle] = useState(false);
-  const { contract, battleName, setBattleName } = useGlobalContext();
+  const { contract, battleName, setBattleName, gameData } = useGlobalContext();
+
+  // Trigger when the GameData changes
+  useEffect(() => {
+    if (gameData?.activeBattle?.battleStatus === 0) {
+      setWaitBattle(true);
+    }
+  }, [gameData]);
 
   const handleClick = async () => {
-    if (!battleName || !battleName.trim()) return null;
+    if (battleName === "" || battleName.trim() === "") return null;
 
     try {
       await contract.createBattle(battleName);
