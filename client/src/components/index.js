@@ -3,5 +3,19 @@ import CustomInput from "./CustomInput";
 import CustomButton from "./CustomButton";
 import Alert from "./Alert";
 import GameLoad from "./GameLoad";
+import ActionButton from "./ActionButton";
+import Card from "./Card";
+import PlayerInfo from "./PlayerInfo";
+import GameInfo from "./GameInfo";
 
-export { PageHOC, CustomInput, CustomButton, Alert, GameLoad };
+export {
+  PageHOC,
+  CustomInput,
+  CustomButton,
+  Alert,
+  GameLoad,
+  Card,
+  ActionButton,
+  PlayerInfo,
+  GameInfo,
+};
