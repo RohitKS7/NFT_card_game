@@ -76,6 +76,15 @@ const Battle = () => {
     if (contract && gameData.activeBattle) getPlayerInfo();
   }, [contract, gameData, battleName]);
 
+  // SECTION ------- Checking if Battle has ended --------
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!gameData?.activeBattle) navigate("/");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // SECTION ------- Attack & Defend --------
   const makeAMove = async (choice) => {
     playAudio(choice === 1 ? attackSound : defenseSound);
