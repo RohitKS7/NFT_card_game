@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 import { ABI } from "../contract";
+import { playAudio, sparcle } from "../utils/animation.js";
+import { defenseSound } from "../assets";
 
 // cb = "callback"
 const AddNewEvent = (eventFilter, provider, cb) => {
@@ -12,6 +14,18 @@ const AddNewEvent = (eventFilter, provider, cb) => {
   });
 };
 
+// NOTE Get Battle card coordinates
+const getCoords = (cardRef) => {
+  const { left, top, width, height } = cardRef.current.getBoundingClientRect();
+
+  return {
+    pageX: left + width / 2,
+    pageY: top + height / 2.25,
+  };
+};
+
+const emptyAccount = "0x0000000000000000000000000000000000000000";
+
 export const createEventListeners = ({
   navigate,
   contract,
@@ -19,6 +33,8 @@ export const createEventListeners = ({
   walletAddress,
   setShowAlert,
   setUpdateGameData,
+  player1Ref,
+  player2Ref,
 }) => {
   // SECTION -------- Event After Player Register -----------
   const newPlayerEventFilter = contract.filters.NewPlayer();
@@ -37,7 +53,6 @@ export const createEventListeners = ({
 
   // SECTION -------- Event After JoinBattle -----------
   const NewBattleEventFilter = contract.filters.NewBattle();
-  //  destructuring the parsedLog passed in "cb()"
   AddNewEvent(NewBattleEventFilter, provider, ({ args }) => {
     console.log("new battle started", args, walletAddress);
 
@@ -47,6 +62,33 @@ export const createEventListeners = ({
       walletAddress.toLowerCase() === args.player2.toLowerCase()
     ) {
       navigate(`/battle/${args.battleName}`);
+    }
+
+    setUpdateGameData((prevUpdateGameData) => prevUpdateGameData + 1);
+  });
+
+  // SECTION -------- Event After first Att. or Def.-----------
+  const BattleMoveEventFilter = contract.filters.BattleMove();
+  AddNewEvent(BattleMoveEventFilter, provider, ({ args }) => {
+    console.log("Battle Move Initiated!", args);
+  });
+
+  // SECTION -------- Event After Round Ended -----------
+  const RoundEndedEventFilter = contract.filters.RoundEnded();
+  AddNewEvent(RoundEndedEventFilter, provider, ({ args }) => {
+    console.log("Round Ended", args, walletAddress);
+
+    // Explode the player who took damage
+    for (let i = 0; i < args.damagedPlayers.length; i += 1) {
+      if (args.damagedPlayers[i] !== emptyAccount) {
+        if (args.damagedPlayers[i] === walletAddress) {
+          sparcle(getCoords(player1Ref));
+        } else if (args.damagedPlayers[i] !== walletAddress) {
+          sparcle(getCoords(player2Ref));
+        }
+      } else {
+        playAudio(defenseSound);
+      }
     }
 
     setUpdateGameData((prevUpdateGameData) => prevUpdateGameData + 1);

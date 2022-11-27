@@ -7,11 +7,14 @@ import { useGlobalContext } from "../context";
 const CreateBattle = () => {
   const navigate = useNavigate();
   const [waitBattle, setWaitBattle] = useState(false);
-  const { contract, battleName, setBattleName, gameData } = useGlobalContext();
+  const { contract, battleName, setBattleName, gameData, setErrorMessage } =
+    useGlobalContext();
 
   // Trigger when the GameData changes
   useEffect(() => {
-    if (gameData?.activeBattle?.battleStatus === 0) {
+    if (gameData?.activeBattle?.battleStatus === 1) {
+      navigate(`/battle/${gameData.activeBattle.name}`);
+    } else if (gameData?.activeBattle?.battleStatus === 0) {
       setWaitBattle(true);
     }
   }, [gameData]);
@@ -24,7 +27,7 @@ const CreateBattle = () => {
 
       setWaitBattle(true);
     } catch (error) {
-      console.log(error);
+      setErrorMessage(error);
     }
   };
 

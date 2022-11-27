@@ -21,7 +21,9 @@ const Battle = () => {
     setShowAlert,
     gameData,
     battleGround,
-    setBattleGround,
+    setErrorMessage,
+    player1Ref,
+    player2Ref,
   } = useGlobalContext();
   const [player1, setPlayer1] = useState({});
   const [player2, setPlayer2] = useState({});
@@ -67,12 +69,29 @@ const Battle = () => {
         });
         setPlayer2({ ...player02, att: "X", def: "X", health: p2H, mana: p2M });
       } catch (error) {
-        console.log(error);
+        setErrorMessage(error);
       }
     };
 
     if (contract && gameData.activeBattle) getPlayerInfo();
   }, [contract, gameData, battleName]);
+
+  // SECTION ------- Attack & Defend --------
+  const makeAMove = async (choice) => {
+    playAudio(choice === 1 ? attackSound : defenseSound);
+
+    try {
+      await contract.attackOrDefendChoice(choice, battleName);
+
+      setShowAlert({
+        status: true,
+        type: "info",
+        message: `Initiating ${choice === 1 ? "attack" : "defense"}`,
+      });
+    } catch (error) {
+      setErrorMessage(error);
+    }
+  };
 
   return (
     <div
@@ -88,27 +107,27 @@ const Battle = () => {
         <Card
           card={player2}
           title={player2?.playerName}
-          // cardRef={player2Ref}
+          cardRef={player2Ref}
           playerTwo
         />
 
         <div className="flex items-center flex-row">
           <ActionButton
             imgUrl={attack}
-            // handleClick={() => makeAMove(1)}
+            handleClick={() => makeAMove(1)}
             restStyles="mr-2 hover:border-yellow-400"
           />
 
           <Card
             card={player1}
             title={player1?.playerName}
-            // cardRef={player1Ref}
+            cardRef={player1Ref}
             restStyles="mt-3"
           />
 
           <ActionButton
             imgUrl={defense}
-            // handleClick={() => makeAMove(2)}
+            handleClick={() => makeAMove(2)}
             restStyles="ml-6 hover:border-red-600"
           />
         </div>

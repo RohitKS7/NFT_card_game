@@ -7,8 +7,9 @@ import React, {
 } from "react";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
-import { useNavigate } from "react-router-dom";
 import { ABI, ADDRESS } from "../contract";
+import { useNavigate } from "react-router-dom";
+import { GetParams } from "../utils/onboard.js";
 import { createEventListeners } from "./createEventListeners";
 
 const GlobalContext = createContext();
@@ -31,9 +32,40 @@ export const GlobalContextProvider = ({ children }) => {
   });
   const [updateGameData, setUpdateGameData] = useState(0);
   const [battleGround, setBattleGround] = useState("bg-astral");
+  const [step, setStep] = useState(1);
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
+  const player1Ref = useRef();
+  const player2Ref = useRef();
+
   // NOTE Series of useEffects to connect with our smart contract as soon as possible with website load
+
+  // SECTION ------------- Reset Web3 onboarding modal params -------------
+  useEffect(() => {
+    const resetParams = async () => {
+      const currentStep = await GetParams();
+
+      setStep(currentStep.step);
+    };
+
+    resetParams();
+
+    window?.ethereum?.on("chainChanged", () => resetParams());
+    window?.ethereum?.on("accountsChanged", () => resetParams());
+  }, []);
+
+  // SECTION ------------- Get and Update the battleground according to the localstorage -------------
+  useEffect(() => {
+    const getBattlegroundFromLocalStorage =
+      localStorage.getItem("battleground");
+
+    if (getBattlegroundFromLocalStorage) {
+      setBattleGround(getBattlegroundFromLocalStorage);
+    } else {
+      localStorage.setItem("battleground", battleGround);
+    }
+  });
 
   // SECTION ------------- Sets the Wallet Account -------------
   const updateCurrentWalletAddress = async () => {
@@ -68,7 +100,7 @@ export const GlobalContextProvider = ({ children }) => {
 
   // SECTION ------------- EventListeners  -------------
   useEffect(() => {
-    if (contract) {
+    if (step !== -1 && contract) {
       // providing all the props we need to use in eventListeners page
       createEventListeners({
         navigate,
@@ -77,11 +109,13 @@ export const GlobalContextProvider = ({ children }) => {
         walletAddress,
         setShowAlert,
         setUpdateGameData,
+        player1Ref,
+        player2Ref,
       });
     }
-  }, [contract]);
+  }, [contract, step]);
 
-  // SECTION ------------- Notification -------------
+  // SECTION ------------- Notification and Alert -------------
   useEffect(() => {
     // if alert is already showing then close it in 5 seconds
     if (showAlert?.status) {
@@ -93,8 +127,27 @@ export const GlobalContextProvider = ({ children }) => {
     }
   }, [showAlert]);
 
-  // SECTION ------------- Keep Track of Active Battles -------------
-  // set the game data to the state whenever the contract changes
+  // SECTION ------------- Handle Error Messages -------------
+  useEffect(() => {
+    if (errorMessage) {
+      // NOTE Here we're slicing the "execution reverted:" part of a message and using the rest error message to show
+      // "execution reverted: This is error"
+      const parsedErrorMessage = errorMessage?.reason
+        ?.slice("execution reverted: ".length)
+        .slice(0, -1);
+
+      if (parsedErrorMessage) {
+        setShowAlert({
+          status: true,
+          type: "failure",
+          message: parsedErrorMessage,
+        });
+      }
+    }
+  }, [errorMessage]);
+
+  // SECTION ------------ Keep Track of Active Battles -------------
+  //  set the game data to the state whenever the contract changes
   useEffect(() => {
     const fetchGameData = async () => {
       if (contract) {
@@ -142,6 +195,10 @@ export const GlobalContextProvider = ({ children }) => {
         gameData,
         battleGround,
         setBattleGround,
+        setErrorMessage,
+        errorMessage,
+        player1Ref,
+        player2Ref,
       }}
     >
       {children}
