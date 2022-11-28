@@ -5,7 +5,7 @@ import { defenseSound } from "../assets";
 
 // cb = "callback"
 const AddNewEvent = (eventFilter, provider, cb) => {
-  provider.removeListener(eventFilter); // unsuring not have multiple listeners for the same events.
+  provider.removeListener(eventFilter); // insuring not have multiple listeners for the same events.
 
   provider.on(eventFilter, (logs) => {
     const parsedLog = new ethers.utils.Interface(ABI).parseLog(logs);
@@ -51,6 +51,22 @@ export const createEventListeners = ({
     }
   });
 
+  // SECTION -------- Event After New Player Game Token Created -----------
+  const NewGameTokenEventFilter = contract.filters.NewGameToken();
+  AddNewEvent(NewGameTokenEventFilter, provider, ({ args }) => {
+    console.log("New Game Token Created", args);
+
+    if (walletAddress.toLowerCase() === args.owner.toLowerCase()) {
+      setShowAlert({
+        status: true,
+        type: "success",
+        message: "Player game token has been successfully created",
+      });
+    }
+
+    navigate("/create-battle");
+  });
+
   // SECTION -------- Event After JoinBattle -----------
   const NewBattleEventFilter = contract.filters.NewBattle();
   AddNewEvent(NewBattleEventFilter, provider, ({ args }) => {
@@ -92,5 +108,19 @@ export const createEventListeners = ({
     }
 
     setUpdateGameData((prevUpdateGameData) => prevUpdateGameData + 1);
+  });
+
+  // SECTION -------- Event After Battle End -----------
+  const BattleEndedEventFilter = contract.filters.BattleEnded();
+  AddNewEvent(BattleEndedEventFilter, provider, ({ args }) => {
+    console.log("Battle Ended", args, walletAddress);
+
+    if (walletAddress.toLowerCase() === args.winner.toLowerCase()) {
+      setShowAlert({ status: true, type: "success", message: "You Won!" });
+    } else if (walletAddress.toLowerCase() === args.loser.toLowerCase()) {
+      setShowAlert({ status: true, type: "failure", message: "You Lost!" });
+    }
+
+    navigate("/create-battle");
   });
 };
