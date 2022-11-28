@@ -16,11 +16,19 @@ const JoinBattle = () => {
   console.log(gameData);
   const navigate = useNavigate();
 
+  // SECTION ------- If a player is already in a battle -------
+  useEffect(() => {
+    if (gameData?.activeBattle?.battleStatus === 1)
+      navigate(`/battle/${gameData.activeBattle.name}`);
+  }, [gameData]);
+
   const handleClick = async (battleName) => {
     setBattleName(battleName);
 
     try {
-      await contract.joinBattle(battleName);
+      await contract.joinBattle(battleName, {
+        gasLimit: 200000,
+      });
 
       setShowAlert({
         status: true,

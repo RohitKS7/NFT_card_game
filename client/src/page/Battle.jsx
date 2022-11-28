@@ -90,7 +90,10 @@ const Battle = () => {
     playAudio(choice === 1 ? attackSound : defenseSound);
 
     try {
-      await contract.attackOrDefendChoice(choice, battleName);
+      // passing calldata to use more gas while making txn, So the txn will never fail.
+      await contract.attackOrDefendChoice(choice, battleName, {
+        gasLimit: 200000,
+      });
 
       setShowAlert({
         status: true,

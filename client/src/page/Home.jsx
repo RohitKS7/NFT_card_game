@@ -4,7 +4,8 @@ import { useGlobalContext } from "../context";
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-  const { contract, walletAddress, setShowAlert } = useGlobalContext();
+  const { contract, walletAddress, setShowAlert, gameData, setErrorMessage } =
+    useGlobalContext();
   const [playerName, setPlayerName] = useState("");
   const navigate = useNavigate();
 
@@ -15,7 +16,9 @@ const Home = () => {
 
       // If no player is available then create one
       if (!playerExists) {
-        await contract.registerPlayer(playerName, playerName);
+        await contract.registerPlayer(playerName, playerName, {
+          gasLimit: 200000,
+        });
 
         setShowAlert({
           status: true,
@@ -24,11 +27,7 @@ const Home = () => {
         });
       }
     } catch (error) {
-      setShowAlert({
-        status: true,
-        type: "failure",
-        message: "something went wrong",
-      });
+      setErrorMessage(error);
     }
   };
 
@@ -51,6 +50,13 @@ const Home = () => {
       checkForPlayerToken();
     }
   }, [contract]);
+
+  // SECTION ----- When a player is registered, has game token and in a activeBattle then navigate them to battle page -----
+  useEffect(() => {
+    if (gameData.activeBattle) {
+      navigate(`/battle/${gameData.activeBattle.name}`);
+    }
+  }, [gameData]);
 
   return (
     <>
